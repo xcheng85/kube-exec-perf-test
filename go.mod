@@ -3,9 +3,15 @@ module github.com/xcheng85/kube-exec-perf-test
 go 1.19
 
 require (
+	github.com/go-chi/chi/v5 v5.0.10
 	github.com/sirupsen/logrus v1.9.3
 	k8s.io/api v0.27.4
 	k8s.io/client-go v0.27.4
+)
+
+require (
+	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/stackus/dotenv v0.0.0-20221206033122-02295762494b
 )
 
 require k8s.io/apimachinery v0.27.4 // indirect
