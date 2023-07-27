@@ -11,7 +11,7 @@ type Module struct{}
 
 func (m Module) Startup(ctx context.Context, mono monolith.Monolith) error {
 	rendererService := service.NewRendererService()
-	if err := rest.RegisterServer(rendererService, ctx, mono.Mux(), mono.Exec()); err != nil {
+	if err := rest.RegisterServer(rendererService, ctx, mono.Mux(), mono.Exec(), mono.KubernetesClientSet()); err != nil {
 		return err
 	}
 	return nil

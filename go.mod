@@ -12,9 +12,10 @@ require (
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/stackus/dotenv v0.0.0-20221206033122-02295762494b
+	k8s.io/apimachinery v0.27.4
 )
 
-require k8s.io/apimachinery v0.27.4 // indirect
+require github.com/kr/pretty v0.3.1 // indirect
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -41,7 +42,7 @@ require (
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
 	golang.org/x/sync v0.3.0
-	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/term v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect

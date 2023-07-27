@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/xcheng85/kube-exec-perf-test/internal/k8s/exec"
+	"k8s.io/client-go/kubernetes"
 )
 
 // define the interface of di
@@ -13,7 +14,7 @@ import (
 type Monolith interface {
 	Mux() *chi.Mux
 	Exec() *exec.K8sExec
-	// WorkerSyncer() worker.WorkerSyncer
+	KubernetesClientSet() kubernetes.Interface
 }
 
 type Module interface {

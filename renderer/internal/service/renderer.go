@@ -5,9 +5,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/xcheng85/kube-exec-perf-test/internal/k8s/exec"
 	"golang.org/x/sync/errgroup"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"time"
-	// "github.com/xcheng85/Go-EDA/players/internal/domain"
-	// "github.com/xcheng85/Go-EDA/players/internal/dto"
 )
 
 // Businiss logic regardless of api architecture
@@ -15,7 +15,7 @@ import (
 // define multiple custom type all at once
 type (
 	RendererService interface {
-		Run(exec *exec.K8sExec, ctx context.Context) error
+		Run(exec *exec.K8sExec, clientset kubernetes.Interface, ctx context.Context)
 	}
 	// only expose interface
 	rendererService struct {
@@ -47,18 +47,51 @@ func (s rendererService) createUnity(exec *exec.K8sExec) error {
 	return nil
 }
 
-func (s rendererService) Run(exec *exec.K8sExec, ctx context.Context) error {
+func (s rendererService) listPods(clientset kubernetes.Interface) error {
+	start := time.Now()
+	namespace := "evd-cia3dviz"
+	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		panic(err.Error())
+	}
+	logrus.Infof("There are %d pods in the cluster\n", len(pods.Items))
+	elapsed := time.Since(start)
+	logrus.Infof("listPods took %s", elapsed)
+	return err
+}
+
+func (s rendererService) runHeavyJob(exec *exec.K8sExec, clientset kubernetes.Interface, c chan string) {
 	g := new(errgroup.Group)
-	MAX_ITERATION := 30
+	MAX_ITERATION := 1
 	for i := 0; i < MAX_ITERATION; i++ {
 		g.Go(func() (err error) {
-			err = s.createUnity(exec)
+			if i > MAX_ITERATION {
+				err = s.createUnity(exec)
+			} else {
+				err = s.listPods(clientset)
+			}
 			return err
 		})
 		// time.Sleep(time.Duration(5 * int(time.Second)))
 	}
 	if err := g.Wait(); err == nil {
-		logrus.Println("All Done")
+		logrus.Println("no error")
+		c <- "all done"
+	} else {
+		logrus.Println("context done")
+		c <- "error"
 	}
-	return nil
+}
+
+func (s rendererService) Run(exec *exec.K8sExec, clientset kubernetes.Interface, ctx context.Context) {
+	c := make(chan string)
+	go s.runHeavyJob(exec, clientset, c)
+	select {
+	case <-ctx.Done():
+		logrus.Println("context done")
+		return
+	case <-c:
+		logrus.Println("runHeavyJob all Done")
+		return
+	}
 }

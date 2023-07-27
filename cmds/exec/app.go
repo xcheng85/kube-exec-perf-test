@@ -9,6 +9,7 @@ import (
 	"github.com/xcheng85/kube-exec-perf-test/internal/monolith"
 	"github.com/xcheng85/kube-exec-perf-test/internal/worker"
 	"golang.org/x/sync/errgroup"
+	"k8s.io/client-go/kubernetes"
 	"net/http"
 )
 
@@ -21,6 +22,7 @@ type app struct {
 	modules []monolith.Module
 	mux     *chi.Mux
 	exec    *exec.K8sExec
+	k8sClientSet kubernetes.Interface
 	// management multiple goroutines
 	workerSyncer worker.WorkerSyncer
 }
@@ -35,6 +37,10 @@ func (a *app) Mux() *chi.Mux {
 
 func (a *app) Exec() *exec.K8sExec {
 	return a.exec
+}
+
+func (a *app) KubernetesClientSet() kubernetes.Interface {
+	return a.k8sClientSet
 }
 
 func (a *app) WorkerSyncer() worker.WorkerSyncer {
