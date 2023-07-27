@@ -56,11 +56,12 @@ func (s rendererService) listPods(clientset kubernetes.Interface) error {
 	}
 	logrus.Infof("There are %d pods in the cluster\n", len(pods.Items))
 	elapsed := time.Since(start)
-	logrus.Infof("listPods took %s", elapsed)
+	logrus.Infof("createUnity took %s", elapsed)
 	return err
 }
 
-func (s rendererService) runHeavyJob(exec *exec.K8sExec, clientset kubernetes.Interface, c chan string) {
+func (s rendererService) runHeavyJob(exec *exec.K8sExec, clientset kubernetes.Interface) <-chan error {
+	out := make(chan error, 1)
 	g := new(errgroup.Group)
 	MAX_ITERATION := 1
 	for i := 0; i < MAX_ITERATION; i++ {
@@ -75,23 +76,19 @@ func (s rendererService) runHeavyJob(exec *exec.K8sExec, clientset kubernetes.In
 		// time.Sleep(time.Duration(5 * int(time.Second)))
 	}
 	if err := g.Wait(); err == nil {
-		logrus.Println("no error")
-		c <- "all done"
+		logrus.Println("All Done")
+		out <- nil
 	} else {
-		logrus.Println("context done")
-		c <- "error"
+		out <- err
 	}
+	return out
 }
 
 func (s rendererService) Run(exec *exec.K8sExec, clientset kubernetes.Interface, ctx context.Context) {
-	c := make(chan string)
-	go s.runHeavyJob(exec, clientset, c)
 	select {
 	case <-ctx.Done():
-		logrus.Println("context done")
 		return
-	case <-c:
-		logrus.Println("runHeavyJob all Done")
+	case <-s.runHeavyJob(exec, clientset):
 		return
 	}
 }
